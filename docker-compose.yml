@@ -1,0 +1,70 @@
+services:
+
+  # API Service
+  eventsourcedbank.api:
+    image: ${DOCKER_REGISTRY-}eventsourcedbankapi
+    build:
+      context: .
+      dockerfile: src/EventSourcedBank.Api/Dockerfile
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      # These connection strings allow the API to find the databases.
+      # We use the service names 'event_store_db', 'read_model_db' as the host
+      # because Docker's internal network resolves these names to the correct container IP.
+      - ConnectionStrings__EventStore=Host=event_store_db;Port=5432;Database=bank_events;Username=bashir;Password=12345678
+      - ConnectionStrings__ReadModel=Host=read_model_db;Port=5432;Database=bank_readmodel;Username=bashir;Password=12345678
+    depends_on:
+      # This ensures the databases are started before the API service attempts to connect.
+      - event_store_db
+      - read_model_db
+    networks:
+      - bank-network
+
+  # Event Store Database Write Model
+  event_store_db:
+    image: postgres:17
+    container_name: event_store_db_container
+    restart: always
+    environment:
+      POSTGRES_USER: bashir
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: bank_events
+    ports:
+      - "5555:5432" # Host port 5555 maps to container port 5432
+    volumes:
+      - event_store_data:/var/lib/postgresql/data
+    networks:
+      - bank-network
+
+  # Read Model Database Query Model
+  read_model_db:
+    image: postgres:17
+    container_name: read_model_db_container
+    restart: always
+    environment:
+      POSTGRES_USER: bashir
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: bank_readmodel
+    ports:
+      - "5554:5432" # Host port 5554 maps to container port 5432
+    volumes:
+      - read_model_data:/var/lib/postgresql/data
+    networks:
+      - bank-network
+
+
+# Named Volumes & Networks
+
+# Named volumes ensure that the database data persists even if the containers are removed.
+volumes:
+  event_store_data:
+    driver: local
+  read_model_data:
+    driver: local
+
+# A dedicated network is defined for the services to communicate with each other.
+networks:
+  bank-network:
+    driver: bridge
