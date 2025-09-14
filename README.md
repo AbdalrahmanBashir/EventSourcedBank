@@ -2,6 +2,9 @@
 
 A comprehensive event-sourced banking application built with .NET 8, demonstrating CQRS (Command Query Responsibility Segregation) and Event Sourcing patterns. The application provides a complete banking system with account management, transaction processing, and real-time read models.
 
+[![Watch the video](https://github.com/user-attachments/assets/0fa3c103-7418-4618-9176-2395d18c58da)](https://github.com/user-attachments/assets/0fa3c103-7418-4618-9176-2395d18c58da)
+
+
 ## Architecture Overview
 
 This application follows a clean architecture pattern with clear separation of concerns:
